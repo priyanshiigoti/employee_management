@@ -1,4 +1,5 @@
 ﻿using employee_management.Database;
+using employee_management.Models;
 using employee_management.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -44,13 +45,12 @@ namespace employee_management.Controllers
                     query = query.Where(e =>
                         e.FirstName.ToLower().Contains(lowerSearch) ||
                         e.LastName.ToLower().Contains(lowerSearch) ||
-                        e.Email.ToString().Contains(lowerSearch) ||
-                        e.Phone.ToString().Contains(lowerSearch) ||
+                        e.Email.ToLower().Contains(lowerSearch) ||
+                        e.Phone.ToLower().Contains(lowerSearch) ||
                         e.IsActive.ToString().ToLower().Contains(lowerSearch) ||
                         (e.department != null && e.department.Name.ToLower().Contains(lowerSearch))
                     );
                 }
-
 
                 if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortDirection))
                 {
@@ -88,23 +88,34 @@ namespace employee_management.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Employee emp)
+        public async Task<IActionResult> Add([FromBody] AddorEditEmployee emp)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, message = "Invalid data." });
 
-            bool exists = await _context.Employees
-         .AnyAsync(e =>
-         e.Email.ToLower() == emp.Email.Trim().ToLower() ||
-         e.Phone.Trim() == emp.Phone.Trim());
+            bool exists = await _context.Employees.AnyAsync(e =>
+                e.Email.ToLower() == emp.Email.Trim().ToLower() ||
+                e.Phone.Trim() == emp.Phone.Trim());
 
             if (exists)
             {
                 return Conflict(new { success = false, message = "Employee with this email or phone number already exists." });
             }
 
+            var employee = new Employee
+            {
+                Id = Guid.NewGuid(),
+                FirstName = emp.FirstName,
+                LastName = emp.LastName,
+                Email = emp.Email,
+                Phone = emp.Phone,
+                DepartmentId = emp.DepartmentId,
+                IsActive = emp.IsActive
+            };
 
-            emp.Id = Guid.NewGuid();
-            _context.Employees.Add(emp);
+            _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
+
             return Json(new { success = true, message = "Employee added successfully!" });
         }
 
@@ -112,14 +123,41 @@ namespace employee_management.Controllers
         public async Task<IActionResult> Get(Guid id)
         {
             var emp = await _context.Employees.FindAsync(id);
-            return Json(emp);
+            if (emp == null)
+                return NotFound(new { success = false, message = "Employee not found" });
+
+            var empViewModel = new AddorEditEmployee
+            {
+                Id = emp.Id,
+                FirstName = emp.FirstName,
+                LastName = emp.LastName,
+                Email = emp.Email,
+                Phone = emp.Phone,
+                DepartmentId = emp.DepartmentId,
+                IsActive = emp.IsActive
+            };
+
+            return Json(empViewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit([FromBody] Employee emp)
+        public async Task<IActionResult> Edit([FromBody] AddorEditEmployee emp)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, message = "Invalid data." });
+
             var existing = await _context.Employees.FindAsync(emp.Id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+                return NotFound(new { success = false, message = "Employee not found" });
+
+            bool duplicate = await _context.Employees.AnyAsync(e =>
+                e.Id != emp.Id &&
+                (e.Email.ToLower() == emp.Email.Trim().ToLower() || e.Phone == emp.Phone.Trim()));
+
+            if (duplicate)
+            {
+                return Conflict(new { success = false, message = "Another employee with the same email or phone exists." });
+            }
 
             existing.FirstName = emp.FirstName;
             existing.LastName = emp.LastName;
@@ -136,7 +174,8 @@ namespace employee_management.Controllers
         public async Task<IActionResult> Delete([FromBody] Guid id)
         {
             var emp = await _context.Employees.FindAsync(id);
-            if (emp == null) return NotFound();
+            if (emp == null)
+                return NotFound(new { success = false, message = "Employee not found" });
 
             _context.Employees.Remove(emp);
             await _context.SaveChangesAsync();

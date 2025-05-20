@@ -1,12 +1,11 @@
-﻿namespace employee_management.Models.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace employee_management.Models
 {
-    public class Department
+    public class AddorEditDepartment
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public ICollection<Employee> Employees { get; set; }
-
     }
 }

@@ -5,17 +5,18 @@ namespace employee_management.Models.Entities
 {
     public class Employee
     {
-        public Guid Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-       [RegularExpression(@"^[^@\s]+@[^@\s]+\.(com)$", ErrorMessage = "Email address is not valid")]
-        public string Email { get; set; }
+       
+            public Guid Id { get; set; }
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string Email { get; set; }
+            public string Phone { get; set; }
+            public bool IsActive { get; set; }
+            public Guid DepartmentId { get; set; }
 
-        [RegularExpression(@"^\d{10}$", ErrorMessage = "Incorrect Phone number")]
-        public string Phone { get; set; }
-        public bool IsActive { get; set; }
-        [ForeignKey("DepartmentId")]
-        public Guid DepartmentId{ get; set; }
-        public Department? department {  get; set; }
+            [ForeignKey("DepartmentId")]
+            public Department? department { get; set; }
+        
+
     }
 }

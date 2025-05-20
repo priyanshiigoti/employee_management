@@ -18,12 +18,15 @@ namespace employee_management.Controllers
         [HttpGet]
         public IActionResult Add()
         {
-            return View();
+            return View(new AddorEditDepartment());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(Department viewModel)
+        public async Task<IActionResult> Add(AddorEditDepartment viewModel)
         {
+            if (!ModelState.IsValid)
+                return View(viewModel);
+
             if (viewModel.CreatedAt > DateTime.Now)
             {
                 ViewBag.Error = "Created date cannot be in the future.";
@@ -31,7 +34,7 @@ namespace employee_management.Controllers
             }
 
             bool exists = await dbContext.Departments
-       .AnyAsync(d => d.Name.ToLower() == viewModel.Name.Trim().ToLower());
+                .AnyAsync(d => d.Name.ToLower() == viewModel.Name.Trim().ToLower());
 
             if (exists)
             {
@@ -41,38 +44,51 @@ namespace employee_management.Controllers
 
             var department = new Department
             {
-                Name = viewModel.Name,
-                CreatedAt = DateTime.Now
+                Id = Guid.NewGuid(),
+                Name = viewModel.Name.Trim(),
+                CreatedAt = viewModel.CreatedAt
             };
 
             await dbContext.Departments.AddAsync(department);
             await dbContext.SaveChangesAsync();
 
-            return RedirectToAction("List", "Department");
+            return RedirectToAction("List");
         }
-
 
         [HttpGet]
         public async Task<IActionResult> List()
         {
-           var Departments =  await dbContext.Departments.ToListAsync();
-            return View(Departments);
+            var departments = await dbContext.Departments.ToListAsync();
+            return View(departments);
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
-            var Department = await dbContext.Departments.FindAsync(id);
-            return View(Department);
+            var department = await dbContext.Departments.FindAsync(id);
+            if (department == null)
+                return RedirectToAction("List");
+
+            var viewModel = new AddorEditDepartment
+            {
+                Id = department.Id,
+                Name = department.Name,
+                CreatedAt = department.CreatedAt
+            };
+
+            return View(viewModel);
         }
+
         [HttpPost]
-        public async Task<IActionResult> Edit(Department viewModel)
+        public async Task<IActionResult> Edit(AddorEditDepartment viewModel)
         {
+            if (!ModelState.IsValid)
+                return View(viewModel);
+
             var existing = await dbContext.Departments.FindAsync(viewModel.Id);
             if (existing == null)
-                return RedirectToAction("List", "Department");
+                return RedirectToAction("List");
 
-            // Check for duplicate name excluding the current department
             bool duplicate = await dbContext.Departments
                 .AnyAsync(d => d.Id != viewModel.Id &&
                                d.Name.ToLower() == viewModel.Name.Trim().ToLower());
@@ -84,28 +100,23 @@ namespace employee_management.Controllers
             }
 
             existing.Name = viewModel.Name.Trim();
-            existing.CreatedAt = DateTime.Now;
+            existing.CreatedAt = viewModel.CreatedAt;
 
             await dbContext.SaveChangesAsync();
-
-            return RedirectToAction("List", "Department");
+            return RedirectToAction("List");
         }
 
         [HttpPost]
-        public async Task <IActionResult>Delete(Department viewModel)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var Department = await dbContext.Departments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == viewModel.Id);
-
-            if(Department != null)
+            var department = await dbContext.Departments.FindAsync(id);
+            if (department != null)
             {
-                dbContext.Departments.Remove(viewModel);
+                dbContext.Departments.Remove(department);
                 await dbContext.SaveChangesAsync();
-
             }
 
-            return RedirectToAction("List", "Department");
+            return RedirectToAction("List");
         }
     }
 }

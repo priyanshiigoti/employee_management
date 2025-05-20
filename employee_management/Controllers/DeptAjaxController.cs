@@ -1,7 +1,6 @@
 ﻿using employee_management.Database;
 using employee_management.Models;
 using employee_management.Models.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,14 +18,12 @@ namespace employee_management.Controllers
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var department = await dbContext.Departments.ToListAsync();
-            //return View(department);
-            return PartialView("_DepartmentTableRows", department); 
-
+            var departments = await dbContext.Departments.ToListAsync();
+            return PartialView("_DepartmentTableRows", departments);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Department viewModel)
+        public async Task<IActionResult> Add([FromBody] AddorEditDepartment viewModel)
         {
             if (string.IsNullOrWhiteSpace(viewModel.Name))
             {
@@ -54,20 +51,25 @@ namespace employee_management.Controllers
             return Ok(new { success = true, message = "Department added successfully." });
         }
 
-
         [HttpGet]
-        public async Task<IActionResult>Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
             var department = await dbContext.Departments.FindAsync(id);
-            if (department == null) 
+            if (department == null)
                 return NotFound(new { success = false, message = "Department not found!" });
 
-            return Ok(department);
+            var viewModel = new AddorEditDepartment
+            {
+                Id = department.Id,
+                Name = department.Name,
+                CreatedAt = department.CreatedAt
+            };
 
+            return Ok(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit([FromBody] Department viewModel)
+        public async Task<IActionResult> Edit([FromBody] AddorEditDepartment viewModel)
         {
             if (viewModel == null || viewModel.Id == Guid.Empty)
             {
@@ -77,21 +79,23 @@ namespace employee_management.Controllers
             var department = await dbContext.Departments.FindAsync(viewModel.Id);
             if (department == null)
             {
-                return NotFound(new { success = false, message = "Department Id is not Found" });
+                return NotFound(new { success = false, message = "Department Id is not found" });
             }
+
             var exists = await dbContext.Departments
-        .AnyAsync(d => d.Id != viewModel.Id && d.Name.ToLower() == viewModel.Name.ToLower());
+                .AnyAsync(d => d.Id != viewModel.Id && d.Name.ToLower() == viewModel.Name.ToLower());
 
             if (exists)
             {
                 return Conflict(new { success = false, message = "A department with the same name already exists." });
             }
 
-            department.Name = viewModel.Name;
+            department.Name = viewModel.Name.Trim();
             department.CreatedAt = DateTime.UtcNow;
+
             await dbContext.SaveChangesAsync();
 
-            return Ok(new { success = true, message = "Department Updated Successfully" });
+            return Ok(new { success = true, message = "Department updated successfully." });
         }
 
         [HttpPost]
@@ -109,7 +113,6 @@ namespace employee_management.Controllers
             return Ok(new { success = true, message = "Department deleted successfully." });
         }
 
-         
         [HttpPost]
         public async Task<IActionResult> DataTable()
         {
@@ -126,16 +129,18 @@ namespace employee_management.Controllers
 
             var query = dbContext.Departments.AsQueryable();
 
-            // search
+            // Search
             if (!string.IsNullOrEmpty(searchValue))
             {
                 searchValue = searchValue.ToLower();
-                query = query.Where(d => d.Name.ToLower().Contains(searchValue)|| d.CreatedAt.ToString().Contains(searchValue));
+                query = query.Where(d =>
+                    d.Name.ToLower().Contains(searchValue) ||
+                    d.CreatedAt.ToString().Contains(searchValue));
             }
 
             int recordsTotal = await query.CountAsync();
 
-            // sorting
+            // Sorting
             switch (sortColumn)
             {
                 case "name":
@@ -149,7 +154,7 @@ namespace employee_management.Controllers
                         : query.OrderByDescending(d => d.CreatedAt);
                     break;
                 default:
-                    query = query.OrderBy(d => d.Name); // Default sort
+                    query = query.OrderBy(d => d.Name);
                     break;
             }
 
@@ -166,10 +171,10 @@ namespace employee_management.Controllers
 
             return Json(new
             {
-                draw = draw,
-                recordsTotal = recordsTotal,
+                draw,
+                recordsTotal,
                 recordsFiltered = recordsTotal,
-                data = data
+                data
             });
         }
 
@@ -186,8 +191,5 @@ namespace employee_management.Controllers
                 .ToList();
             return Json(departments);
         }
-
-
-
     }
 }

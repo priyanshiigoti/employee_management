@@ -21,14 +21,13 @@ namespace employee_management.Controllers
             ViewBag.Departments = await dbContext.Departments.ToListAsync();
             return View();
         }
+
         [HttpPost]
-        public async Task<IActionResult> Add(Employee viewModel)
+        public async Task<IActionResult> Add(AddorEditEmployee viewModel)
         {
-            // Trim inputs for comparison
             var email = viewModel.Email?.Trim().ToLower();
             var phone = viewModel.Phone?.Trim();
 
-            // Check for duplicate email or phone
             bool exists = await dbContext.Employees.AnyAsync(e =>
                 e.Email.ToLower() == email || e.Phone == phone);
 
@@ -55,11 +54,13 @@ namespace employee_management.Controllers
             return RedirectToAction("List", "Employee");
         }
 
-
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var employees = await dbContext.Employees.Include(e => e.department).ToListAsync();
+            var employees = await dbContext.Employees
+                .Include(e => e.department)
+                .ToListAsync();
+
             return View(employees);
         }
 
@@ -67,12 +68,26 @@ namespace employee_management.Controllers
         public async Task<IActionResult> Edit(Guid id)
         {
             var employee = await dbContext.Employees.FindAsync(id);
+            if (employee == null)
+                return RedirectToAction("List", "Employee");
+
+            var viewModel = new AddorEditEmployee
+            {
+                Id = employee.Id,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                Email = employee.Email,
+                Phone = employee.Phone,
+                IsActive = employee.IsActive,
+                DepartmentId = employee.DepartmentId
+            };
+
             ViewBag.Departments = await dbContext.Departments.ToListAsync();
-            return View(employee);
+            return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Employee viewModel)
+        public async Task<IActionResult> Edit(AddorEditEmployee viewModel)
         {
             var existing = await dbContext.Employees.FindAsync(viewModel.Id);
             if (existing == null)
@@ -81,7 +96,6 @@ namespace employee_management.Controllers
             var email = viewModel.Email?.Trim().ToLower();
             var phone = viewModel.Phone?.Trim();
 
-            // Check if another employee has the same email or phone
             bool duplicate = await dbContext.Employees.AnyAsync(e =>
                 e.Id != viewModel.Id &&
                 (e.Email.ToLower() == email || e.Phone == phone));
@@ -105,12 +119,10 @@ namespace employee_management.Controllers
             return RedirectToAction("List", "Employee");
         }
 
-
         [HttpPost]
         public async Task<IActionResult> Delete(Guid id)
         {
             var employee = await dbContext.Employees.FindAsync(id);
-
             if (employee != null)
             {
                 dbContext.Employees.Remove(employee);
