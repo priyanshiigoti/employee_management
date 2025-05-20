@@ -86,22 +86,6 @@ namespace employee_management.Controllers
             return Ok(new { success = true, message = "Department Updated Successfully" });
         }
 
-
-        [HttpPost]
-        public async Task<IActionResult> Delete([FromBody] Guid id)
-        {
-            var department = await dbContext.Departments.FindAsync(id);
-            if (department == null)
-            {
-                return NotFound(new { success = false, message = "Department not found to delete" });
-            }
-
-            dbContext.Departments.Remove(department);
-            await dbContext.SaveChangesAsync();
-
-            return Ok(new { success = true, message = "Department deleted successfully" });
-        }
-
         [HttpPost]
         public async Task<IActionResult> DataTable()
         {
@@ -122,7 +106,7 @@ namespace employee_management.Controllers
             if (!string.IsNullOrEmpty(searchValue))
             {
                 searchValue = searchValue.ToLower();
-                query = query.Where(d => d.Name.ToLower().Contains(searchValue));
+                query = query.Where(d => d.Name.ToLower().Contains(searchValue)|| d.CreatedAt.ToString().Contains(searchValue));
             }
 
             int recordsTotal = await query.CountAsync();
@@ -164,7 +148,6 @@ namespace employee_management.Controllers
                 data = data
             });
         }
-
 
         public IActionResult Index()
         {

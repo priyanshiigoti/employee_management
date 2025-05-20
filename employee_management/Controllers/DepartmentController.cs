@@ -30,10 +30,19 @@ namespace employee_management.Controllers
                 return View(viewModel);
             }
 
+            bool exists = await dbContext.Departments
+       .AnyAsync(d => d.Name.ToLower() == viewModel.Name.Trim().ToLower());
+
+            if (exists)
+            {
+                ViewBag.Error = "A department with the same name already exists.";
+                return View(viewModel);
+            }
+
             var department = new Department
             {
                 Name = viewModel.Name,
-                CreatedAt = viewModel.CreatedAt
+                CreatedAt = DateTime.Now
             };
 
             await dbContext.Departments.AddAsync(department);
@@ -59,17 +68,27 @@ namespace employee_management.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(Department viewModel)
         {
-            var Department = await dbContext.Departments.FindAsync(viewModel.Id);
-            if(Department != null)
+            var existing = await dbContext.Departments.FindAsync(viewModel.Id);
+            if (existing == null)
+                return RedirectToAction("List", "Department");
+
+            // Check for duplicate name excluding the current department
+            bool duplicate = await dbContext.Departments
+                .AnyAsync(d => d.Id != viewModel.Id &&
+                               d.Name.ToLower() == viewModel.Name.Trim().ToLower());
+
+            if (duplicate)
             {
-                Department.Name = viewModel.Name;
-                Department.CreatedAt = viewModel.CreatedAt;
-
-                await dbContext.SaveChangesAsync();
-
+                ViewBag.Error = "Another department with the same name already exists.";
+                return View(viewModel);
             }
 
-            return RedirectToAction("List","Department");
+            existing.Name = viewModel.Name.Trim();
+            existing.CreatedAt = DateTime.Now;
+
+            await dbContext.SaveChangesAsync();
+
+            return RedirectToAction("List", "Department");
         }
 
         [HttpPost]

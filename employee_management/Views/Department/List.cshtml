@@ -1,37 +1,32 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-@model List<employee_management.Models.Entities.Department>
+﻿@model IEnumerable<employee_management.Models.Entities.Department>
 
-<h1>Department List</h1>
-<a class="btn btn-success ms-2" asp-controller="Department" asp-action="Add">Create</a>
-
-<table class="table">
+<h1>Departments</h1>
+<a class="btn btn-success mb-3" asp-controller="Department" asp-action="Add">Add New Department</a>
+<table class="table table-bordered">
     <thead>
         <tr>
             <th>Name</th>
-            <th>CreatedAt</th>
+            <th>Created At</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var Department in Model)
+        @foreach (var dept in Model)
         {
             <tr>
-                <td>@Department.Name</td>
-                <td>@Department.CreatedAt</td>
+                <td>@dept.Name</td>
+                <td>@dept.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                 <td>
-                    <a class="btn btn-primary" asp-controller="Department" asp-action="Edit" asp-route-id="@Department.Id">Edit</a>
+                    <a class="btn btn-sm btn-primary" href="@Url.Action("Edit", "Department", new { id = dept.Id })">Edit</a>
 
-                    <form asp-controller="Department" asp-action="Delete" asp-route-id="@Department.Id" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-danger ms-2">Delete</button>
+                    <form method="post" asp-action="Delete" asp-controller="Department"
+                          onsubmit="return confirm('Are you sure you want to delete this department?');"
+                          style="display:inline;">
+                        <input type="hidden" name="Id" value="@dept.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                     </form>
-
                 </td>
-
-                
             </tr>
         }
     </tbody>
-</table> 
+</table>

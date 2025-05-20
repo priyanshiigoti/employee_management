@@ -21,10 +21,24 @@ namespace employee_management.Controllers
             ViewBag.Departments = await dbContext.Departments.ToListAsync();
             return View();
         }
-
         [HttpPost]
         public async Task<IActionResult> Add(Employee viewModel)
         {
+            // Trim inputs for comparison
+            var email = viewModel.Email?.Trim().ToLower();
+            var phone = viewModel.Phone?.Trim();
+
+            // Check for duplicate email or phone
+            bool exists = await dbContext.Employees.AnyAsync(e =>
+                e.Email.ToLower() == email || e.Phone == phone);
+
+            if (exists)
+            {
+                ViewBag.Error = "An employee with the same email or phone number already exists.";
+                ViewBag.Departments = await dbContext.Departments.ToListAsync();
+                return View(viewModel);
+            }
+
             var employee = new Employee
             {
                 FirstName = viewModel.FirstName,
@@ -40,6 +54,7 @@ namespace employee_management.Controllers
 
             return RedirectToAction("List", "Employee");
         }
+
 
         [HttpGet]
         public async Task<IActionResult> List()
@@ -59,21 +74,37 @@ namespace employee_management.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(Employee viewModel)
         {
-            var employee = await dbContext.Employees.FindAsync(viewModel.Id);
-            if (employee != null)
-            {
-                employee.FirstName = viewModel.FirstName;
-                employee.LastName = viewModel.LastName;
-                employee.Email = viewModel.Email;
-                employee.Phone = viewModel.Phone;
-                employee.IsActive = viewModel.IsActive;
-                employee.DepartmentId = viewModel.DepartmentId;
+            var existing = await dbContext.Employees.FindAsync(viewModel.Id);
+            if (existing == null)
+                return RedirectToAction("List", "Employee");
 
-                await dbContext.SaveChangesAsync();
+            var email = viewModel.Email?.Trim().ToLower();
+            var phone = viewModel.Phone?.Trim();
+
+            // Check if another employee has the same email or phone
+            bool duplicate = await dbContext.Employees.AnyAsync(e =>
+                e.Id != viewModel.Id &&
+                (e.Email.ToLower() == email || e.Phone == phone));
+
+            if (duplicate)
+            {
+                ViewBag.Error = "Another employee with the same email or phone number already exists.";
+                ViewBag.Departments = await dbContext.Departments.ToListAsync();
+                return View(viewModel);
             }
+
+            existing.FirstName = viewModel.FirstName;
+            existing.LastName = viewModel.LastName;
+            existing.Email = viewModel.Email;
+            existing.Phone = viewModel.Phone;
+            existing.IsActive = viewModel.IsActive;
+            existing.DepartmentId = viewModel.DepartmentId;
+
+            await dbContext.SaveChangesAsync();
 
             return RedirectToAction("List", "Employee");
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Delete(Guid id)

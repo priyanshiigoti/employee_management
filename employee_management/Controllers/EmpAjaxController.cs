@@ -40,12 +40,17 @@ namespace employee_management.Controllers
 
                 if (!string.IsNullOrEmpty(searchValue))
                 {
+                    var lowerSearch = searchValue.ToLower();
                     query = query.Where(e =>
-                        e.FirstName.Contains(searchValue) ||
-                        e.LastName.Contains(searchValue) ||
-                        e.Email.Contains(searchValue) ||
-                        e.Phone.Contains(searchValue));   
+                        e.FirstName.ToLower().Contains(lowerSearch) ||
+                        e.LastName.ToLower().Contains(lowerSearch) ||
+                        e.Email.ToString().Contains(lowerSearch) ||
+                        e.Phone.ToString().Contains(lowerSearch) ||
+                        e.IsActive.ToString().ToLower().Contains(lowerSearch) ||
+                        (e.department != null && e.department.Name.ToLower().Contains(lowerSearch))
+                    );
                 }
+
 
                 if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortDirection))
                 {
