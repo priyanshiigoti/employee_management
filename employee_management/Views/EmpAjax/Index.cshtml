@@ -56,17 +56,35 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editId" />
+
+                <label for="editFirstName">First Name</label>
                 <input type="text" id="editFirstName" class="form-control mb-2" required />
+
+                <label for="editLastName">Last Name</label>
                 <input type="text" id="editLastName" class="form-control mb-2" required />
+
+                <label for="editEmail">Email</label>
                 <input type="email" id="editEmail" class="form-control mb-2" required />
+
+                <label for="editPhone">Phone</label>
                 <input type="text" id="editPhone" class="form-control mb-2" required />
-                <select id="editDepartmentId" class="form-control mb-2"></select>
-                <label class="mb-2"><input type="checkbox" id="editIsActive" /> Is Active</label>
-                <div class="mt-2">
+
+                <label for="editDepartmentId">Department</label>
+                <select id="editDepartmentId" class="form-control mb-2" required>
+                    <option value="">-- Select Department --</option>
+                </select>
+
+                <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="editIsActive" />
+                    <label class="form-check-label" for="editIsActive">Is Active</label>
+                </div>
+
+                <div class="mt-2 text-end">
                     <button class="btn btn-success" onclick="submitEdit()">Update</button>
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -181,27 +199,39 @@
             editModal.show();
         }
 
-        async function submitEdit() {
-                const email = $('#editEmail').val().trim();
-        const phone = $('#editPhone').val().trim();
+                async function submitEdit() {
+            const id = $('#editId').val();
+            const firstName = $('#editFirstName').val().trim();
+            const lastName = $('#editLastName').val().trim();
+            const email = $('#editEmail').val().trim();
+            const phone = $('#editPhone').val().trim();
+            const departmentId = $('#editDepartmentId').val();
+            const isActive = $('#editIsActive').is(':checked');
 
-        if (!email.endsWith(".com")) {
-            alert('Please enter a valid email address');
-            return;
-        }
+            // Required fields validation
+            if (!firstName || !lastName || !email || !phone || !departmentId) {
+                alert('All fields are required.');
+                return;
+            }
 
-        if (!/^\d{10}$/.test(phone)) {
-            alert('Please enter a valid 10-digit phone number');
-            return;
-        }
+            if (!email.endsWith(".com")) {
+                alert('Please enter a valid email address ending with .com');
+                return;
+            }
+
+            if (!/^\d{10}$/.test(phone)) {
+                alert('Please enter a valid 10-digit phone number');
+                return;
+            }
+
             const body = {
-                id: $('#editId').val(),
-                firstName: $('#editFirstName').val(),
-                lastName: $('#editLastName').val(),
-                email: $('#editEmail').val(),
-                phone: $('#editPhone').val(),
-                departmentId: $('#editDepartmentId').val(),
-                isActive: $('#editIsActive').is(':checked')
+                id,
+                firstName,
+                lastName,
+                email,
+                phone,
+                departmentId,
+                isActive
             };
 
             const res = await fetch('/EmpAjax/Edit', {
@@ -215,6 +245,7 @@
             editModal.hide();
             $('#employeeTable').DataTable().ajax.reload();
         }
+
 
         async function deleteEmployee(id) {
             if (confirm("Are you sure you want to delete this employee?")) {

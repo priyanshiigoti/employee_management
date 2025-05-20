@@ -1,6 +1,7 @@
 ﻿using employee_management.Database;
 using employee_management.Models;
 using employee_management.Models.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,14 +79,37 @@ namespace employee_management.Controllers
             {
                 return NotFound(new { success = false, message = "Department Id is not Found" });
             }
+            var exists = await dbContext.Departments
+        .AnyAsync(d => d.Id != viewModel.Id && d.Name.ToLower() == viewModel.Name.ToLower());
+
+            if (exists)
+            {
+                return Conflict(new { success = false, message = "A department with the same name already exists." });
+            }
 
             department.Name = viewModel.Name;
-            department.CreatedAt = viewModel.CreatedAt;
+            department.CreatedAt = DateTime.UtcNow;
             await dbContext.SaveChangesAsync();
 
             return Ok(new { success = true, message = "Department Updated Successfully" });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Delete([FromBody] Guid id)
+        {
+            var department = await dbContext.Departments.FindAsync(id);
+            if (department == null)
+            {
+                return NotFound(new { success = false, message = "Department not found!" });
+            }
+
+            dbContext.Departments.Remove(department);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Department deleted successfully." });
+        }
+
+         
         [HttpPost]
         public async Task<IActionResult> DataTable()
         {
@@ -162,6 +186,8 @@ namespace employee_management.Controllers
                 .ToList();
             return Json(departments);
         }
+
+
 
     }
 }
