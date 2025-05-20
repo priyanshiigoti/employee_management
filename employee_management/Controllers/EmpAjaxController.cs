@@ -39,37 +39,37 @@ namespace employee_management.Controllers
 
                 var query = _context.Employees.Include(e => e.department).AsQueryable();
 
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    var lowerSearch = searchValue.ToLower();
-                    query = query.Where(e =>
-                        e.FirstName.ToLower().Contains(lowerSearch) ||
-                        e.LastName.ToLower().Contains(lowerSearch) ||
-                        e.Email.ToLower().Contains(lowerSearch) ||
-                        e.Phone.ToLower().Contains(lowerSearch) ||
-                        e.IsActive.ToString().ToLower().Contains(lowerSearch) ||
-                        (e.department != null && e.department.Name.ToLower().Contains(lowerSearch))
-                    );
-                }
-
+                // Handle sorting
                 if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortDirection))
                 {
-                    sortColumn = char.ToUpper(sortColumn[0]) + sortColumn.Substring(1);
+                    sortColumn = sortColumn.ToLower() switch
+                    {
+                        "firstname" => "FirstName",
+                        "lastname" => "LastName",
+                        "email" => "Email",
+                        "phone" => "Phone",
+                        "isactive" => "IsActive",
+                        "departmentname" => "department.Name",
+                        _ => "FirstName"
+                    };
+
                     query = query.OrderBy($"{sortColumn} {sortDirection}");
                 }
 
                 var recordsFiltered = await query.CountAsync();
-                var data = await query.Skip(skip).Take(pageSize).Select(e => new
-                {
-                    e.Id,
-                    e.FirstName,
-                    e.LastName,
-                    e.Email,
-                    e.Phone,
-                    e.IsActive,
-                    DepartmentName = e.department != null ? e.department.Name : "",
-                    e.DepartmentId
-                }).ToListAsync();
+
+                var data = await query.Skip(skip).Take(pageSize)
+                    .Select(e => new
+                    {
+                        e.Id,
+                        e.FirstName,
+                        e.LastName,
+                        e.Email,
+                        e.Phone,
+                        e.IsActive,
+                        DepartmentName = e.department != null ? e.department.Name : ""
+                    })
+                    .ToListAsync();
 
                 var totalRecords = await _context.Employees.CountAsync();
 
@@ -80,6 +80,7 @@ namespace employee_management.Controllers
                     recordsFiltered,
                     data
                 });
+
             }
             catch (Exception ex)
             {
