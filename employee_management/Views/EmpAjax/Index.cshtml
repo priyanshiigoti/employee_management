@@ -1,0 +1,237 @@
+﻿@{
+    ViewData["Title"] = "Employees (AJAX)";
+}
+
+<h2>Employee Management</h2>
+
+<button class="btn btn-primary mb-3" onclick="showAddModal()">Add Employee</button>
+<hr />
+
+<table id="employeeTable" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Department</th>
+            <th>Active</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+</table>
+
+<!-- Add Modal -->
+<div id="addModal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <input type="text" id="firstName" placeholder="First Name" class="form-control mb-2" required />
+                    <input type="text" id="lastName" placeholder="Last Name" class="form-control mb-2" required />
+                    <input type="email" id="email" placeholder="Email" class="form-control mb-2" required />
+                    <input type="text" id="phone" placeholder="Phone" class="form-control mb-2" />
+                    <select id="departmentId" class="form-control mb-2" required></select>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-success">Add</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId" />
+                <input type="text" id="editFirstName" class="form-control mb-2" />
+                <input type="text" id="editLastName" class="form-control mb-2" />
+                <input type="email" id="editEmail" class="form-control mb-2" />
+                <input type="text" id="editPhone" class="form-control mb-2" />
+                <select id="editDepartmentId" class="form-control mb-2"></select>
+                <label class="mb-2"><input type="checkbox" id="editIsActive" /> Is Active</label>
+                <div class="mt-2">
+                    <button class="btn btn-success" onclick="submitEdit()">Update</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <script>
+        let addModal, editModal;
+
+        $(document).ready(function () {
+            loadDepartments();
+
+            addModal = new bootstrap.Modal(document.getElementById('addModal'));
+            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+            $('#employeeTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '/EmpAjax/DataTable',
+                    type: 'POST',
+                    error: function (xhr, error, thrown) {
+                        console.error('DataTable AJAX error:', xhr.responseText);
+                    }
+                },
+                columns: [
+                    { data: 'firstName' },
+                    { data: 'lastName' },
+                    { data: 'email' },
+                    { data: 'phone' },
+                    { data: 'departmentName' },
+                    {
+                        data: 'isActive',
+                        render: data => data ? "Yes" : "No"
+                    },
+                    {
+                        data: 'id',
+                        orderable: false,
+                        render: function (data) {
+                            return `
+                                <button class="btn btn-sm btn-info" onclick="editEmployee('${data}')">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteEmployee('${data}')">Delete</button>
+                            `;
+                        }
+                    }
+                ]
+            });
+
+            $('#addForm').on('submit', async function (e) {
+                e.preventDefault();
+
+                const email = $('#email').val().trim();
+                const phone = $('#phone').val().trim();
+
+                if (!email.endsWith(".com")) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+
+                if (!/^\d{10}$/.test(phone)) {
+                    alert('Please enter a valid 10-digit phone number');
+                    return;
+                }
+
+                const body = {
+                    firstName: $('#firstName').val(),
+                    lastName: $('#lastName').val(),
+                    email: $('#email').val(),
+                    phone: $('#phone').val(),
+                    departmentId: $('#departmentId').val(),
+                    isActive: true
+                };
+
+                const res = await fetch('/EmpAjax/Add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const result = await res.json();
+                alert(result.message);
+                $('#employeeTable').DataTable().ajax.reload();
+                addModal.hide();
+            });
+        });
+
+        async function loadDepartments() {
+            const res = await fetch('/DeptAjax/ListJson');
+            const data = await res.json();
+            data.forEach(d => {
+                $('#departmentId, #editDepartmentId').append(`<option value="${d.id}">${d.name}</option>`);
+            });
+        }
+
+        async function editEmployee(id) {
+            const res = await fetch(`/EmpAjax/Get?id=${id}`);
+            const emp = await res.json();
+
+            $('#editId').val(emp.id);
+            $('#editFirstName').val(emp.firstName);
+            $('#editLastName').val(emp.lastName);
+            $('#editEmail').val(emp.email);
+            $('#editPhone').val(emp.phone);
+            $('#editDepartmentId').val(emp.departmentId);
+            $('#editIsActive').prop('checked', emp.isActive);
+
+            editModal.show();
+        }
+
+        async function submitEdit() {
+                const email = $('#editEmail').val().trim();
+        const phone = $('#editPhone').val().trim();
+
+        if (!email.endsWith(".com")) {
+            alert('Please enter a valid email address');
+            return;
+        }
+
+        if (!/^\d{10}$/.test(phone)) {
+            alert('Please enter a valid 10-digit phone number');
+            return;
+        }
+            const body = {
+                id: $('#editId').val(),
+                firstName: $('#editFirstName').val(),
+                lastName: $('#editLastName').val(),
+                email: $('#editEmail').val(),
+                phone: $('#editPhone').val(),
+                departmentId: $('#editDepartmentId').val(),
+                isActive: $('#editIsActive').is(':checked')
+            };
+
+            const res = await fetch('/EmpAjax/Edit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const result = await res.json();
+            alert(result.message);
+            editModal.hide();
+            $('#employeeTable').DataTable().ajax.reload();
+        }
+
+        async function deleteEmployee(id) {
+            if (confirm("Are you sure you want to delete this employee?")) {
+                const res = await fetch('/EmpAjax/Delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(id)
+                });
+
+                const result = await res.json();
+                alert(result.message);
+                $('#employeeTable').DataTable().ajax.reload();
+            }
+        }
+
+        function showAddModal() {
+            addModal.show();
+        }
+    </script>
+}

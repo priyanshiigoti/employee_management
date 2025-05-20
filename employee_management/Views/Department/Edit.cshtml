@@ -1,0 +1,30 @@
+﻿
+@model employee_management.Models.Entities.Department
+
+<h1>Edit Department Details</h1>
+
+@if(Model == null)
+{
+    <p>No department found with this id </p>
+}
+else
+{
+    <form method="post">
+
+        <div class="mt-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" asp-for="Name" />
+        </div>
+        <div class="mt-3">
+            <label class="form-label" for="createdAt">Created At</label>
+            <input type="datetime-local" class="form-control" asp-for="CreatedAt" />
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="submit" class="btn btn-danger ms-3" asp-action="Delete" asp-controller="Department">Delete</button>
+        </div>
+    </form>
+
+}
+

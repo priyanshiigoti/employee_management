@@ -1,0 +1,52 @@
+﻿@model employee_management.Models.Entities.Employee
+
+@{
+    ViewData["Title"] = "Edit Employee";
+    var departments = ViewBag.Departments as List<employee_management.Models.Entities.Department>;
+}
+
+<h2>Edit Employee</h2>
+<form asp-action="Edit" method="post">
+
+    <div class="mb-3">
+        <label asp-for="FirstName" class="form-label"></label>
+        <input asp-for="FirstName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LastName" class="form-label"></label>
+        <input asp-for="LastName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" type="email" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IsActive" class="form-label">Is Active?</label>
+        <select asp-for="IsActive" class="form-control">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DepartmentId" class="form-label">Department</label>
+        <select asp-for="DepartmentId" class="form-control">
+            <option value="">-- Select Department --</option>
+            @foreach (var dept in departments)
+            {
+                <option value="@dept.Id">@dept.Name</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Edit</button>
+    <a asp-action="List" class="btn btn-secondary ms-2">Cancel</a>
+    </form>

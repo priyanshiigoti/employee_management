@@ -1,0 +1,68 @@
+﻿@model employee_management.Models.Entities.Employee
+
+@{
+    ViewData["Title"] = "Add Employee";
+    var departments = ViewBag.Departments as List<employee_management.Models.Entities.Department>;
+}
+
+<h2>Add New Employee</h2>
+
+<form asp-action="Add" method="post">
+    <div class="mb-3">
+        <label asp-for="FirstName" class="form-label"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LastName" class="form-label"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" type="email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IsActive" class="form-label">Is Active?</label>
+        <select asp-for="IsActive" class="form-control">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+        </select>
+        <span asp-validation-for="IsActive" class="text-danger"></span>
+
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DepartmentId" class="form-label">Department</label>
+        <select asp-for="DepartmentId" class="form-control">
+            <option value="">-- Select Department --</option>
+            @foreach (var dept in departments)
+            {
+                <option value="@dept.Id">@dept.Name</option>
+            }
+        </select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="List" class="btn btn-secondary ms-2">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

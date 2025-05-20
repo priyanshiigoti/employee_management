@@ -1,0 +1,13 @@
+﻿@model IEnumerable<employee_management.Models.Entities.Department>
+
+@foreach (var dept in Model)
+{
+    <tr>
+        <td>@dept.Name</td>
+        <td>@dept.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+        <td>
+            <button onclick="editDepartment('@dept.Id')">Edit</button>
+            <button onclick="deleteDepartment('@dept.Id')">Delete</button>
+        </td>
+    </tr>
+}
