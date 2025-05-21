@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using employee_management.Database;
 
@@ -11,9 +12,11 @@ using employee_management.Database;
 namespace employee_management.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521072713_seeddata")]
+    partial class seeddata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,17 +248,17 @@ namespace employee_management.Migrations
                         {
                             Id = "a1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "944dfc1f-e47f-463e-b44b-c6637e87d7bd",
-                            Email = "admin@admin.com",
+                            ConcurrencyStamp = "39306f99-5bad-43f7-8624-bb8377377a2e",
+                            Email = "admin@hospital.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@ADMIN.COM",
-                            NormalizedUserName = "ADMIN@ADMIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAECq6yNnkKbahA7EY3Ug5SZ41KiNJwnwCIiTGivo34f5c+LPm/nF2+jJMBWSzqNwqFQ==",
+                            NormalizedEmail = "ADMIN@HOSPITAL.COM",
+                            NormalizedUserName = "ADMIN@HOSPITAL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEjp0dSOMy99tIR/fESXB31xC4smCVBg5hatR1IpthjER1NOlo8haJrLyWTQ9Q5ZJA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "aec807a7-496d-4b29-a451-66738c32d426",
+                            SecurityStamp = "280e55d9-b565-4498-928a-5410aebfc42f",
                             TwoFactorEnabled = false,
-                            UserName = "admin@admin.com"
+                            UserName = "admin@hospital.com"
                         });
                 });
 

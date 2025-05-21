@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using employee_management.Database;
 
@@ -11,9 +12,11 @@ using employee_management.Database;
 namespace employee_management.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521073007_seed2")]
+    partial class seed2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,17 +248,17 @@ namespace employee_management.Migrations
                         {
                             Id = "a1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "944dfc1f-e47f-463e-b44b-c6637e87d7bd",
+                            ConcurrencyStamp = "894dac4f-d387-40a8-933f-c64be4e62684",
                             Email = "admin@admin.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ADMIN.COM",
-                            NormalizedUserName = "ADMIN@ADMIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAECq6yNnkKbahA7EY3Ug5SZ41KiNJwnwCIiTGivo34f5c+LPm/nF2+jJMBWSzqNwqFQ==",
+                            NormalizedUserName = "ADMIN",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAUouA3CVTJWV2CCBm7NwlSj4S3J5rxlc3BFHufV5IfN6e5kXoHMw4wWXKoAyKt+GA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "aec807a7-496d-4b29-a451-66738c32d426",
+                            SecurityStamp = "73e7f3f3-9573-453b-9e37-0f234c2723fc",
                             TwoFactorEnabled = false,
-                            UserName = "admin@admin.com"
+                            UserName = "admin"
                         });
                 });
 

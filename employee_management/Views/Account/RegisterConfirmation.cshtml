@@ -1,0 +1,34 @@
+﻿@model string
+@{
+    ViewData["Title"] = "Register Confirmation";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow rounded-4">
+                <div class="card-body p-4 text-center">
+                    <h2 class="card-title mb-4">@ViewData["Title"]</h2>
+
+                    @if (!string.IsNullOrEmpty(Model))
+                    {
+                        <p>
+                            Thank you for registering. Please check your email <strong>@Model</strong> to confirm your account.
+                        </p>
+                    }
+                    else
+                    {
+                        <p>
+                            Thank you for registering. Please check your email to confirm your account.
+                        </p>
+                    }
+
+                    <p class="mt-3">
+                        Once confirmed, you can
+                        <a asp-controller="Account" asp-action="Login" class="text-decoration-none fw-semibold">click here to login</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -6,14 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace employee_management.Controllers
 {
-    public class DepartmentController : Controller
+    public class DepartmentController(ApplicationDbContext dbContext) : Controller
     {
-        private readonly ApplicationDbContext dbContext;
-
-        public DepartmentController(ApplicationDbContext dbContext)
-        {
-            this.dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext dbContext = dbContext;
 
         [HttpGet]
         public IActionResult Add()

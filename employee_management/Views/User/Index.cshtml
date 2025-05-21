@@ -1,0 +1,17 @@
+﻿@model employee_management.Models.Entities.ApplicationUser
+@{
+    ViewData["Title"] = "User Dashboard";
+}
+
+<h2>Welcome, @Model.Email!</h2>
+
+<p>This is your user dashboard.</p>
+
+<ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="ChangePassword">Change Password</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a>
+    </li>
+</ul>
